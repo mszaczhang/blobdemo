@@ -67,7 +67,7 @@ puts 'Upload file to block blob.  Local file: '+ file_to_upload
 File.open file_to_upload, 'rb' do |file|
   while (file_bytes = file.read(block_size))
     block_id = Base64.strict_encode64(RandomString.random_name)
-    puts block_id
+    print "Uploading block ID: ", block_id, "\n"
     blob_service.put_blob_block(container_name,
                                 blob_name,
                                 block_id,
