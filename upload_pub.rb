@@ -1,8 +1,18 @@
-# Require the azure storage gem
+# This sample shows how to upload big file to Azure Storage using Blob Blocks.  
+# Currently this sample only support Shared Key authentication, DO NOT support SAS.
+# https://github.com/Azure/azure-storage-ruby call help generate headers, sign the keys and contents.
+# Please ensure necessary GEM have been installed in your test environment by running command
+#
+#     gem install azure-storage --pre
+#
+# 
+
+# Require azure storage gem
 require 'azure/storage'
 
 # There is default version parameter 2015-04-05 in azure-storage gem
 # Overwrite the version paramater to be used in http header
+# https://docs.microsoft.com/en-us/rest/api/storageservices/versioning-for-the-azure-storage-services
 Azure::Storage::Default::STG_VERSION = '2016-05-31' 
 
 ### Prepare the file to be upload
@@ -12,14 +22,14 @@ file_to_upload = 'FILE_TO_UPLOAD'  # File name of Local file to upload
 storage_account_name = 'YOUR_STORAGE_ACCOUNT_NAME' # Please fill your Azure Storage Account Name
 storage_access_key = 'YOUR_STORAGE_ACCESS_KEY'     # Please fill your Azure Storage Access Key
 container_name = 'YOUR_CONTAINER_NAME'  # An existing azure container name to save file  
-blob_name = 'REMOTE_FILE_NAME'          # Remote file name on Azure storage which can be same as local file name or not
-block_size = 8 * 1024 * 1024
+blob_name = 'REMOTE_FILE_NAME'          # Remote file name on Azure storage.  Can be same as local file name or not
+block_size = 8 * 1024 * 1024            # Define the block size. API version later than 2016-05-31 support up to 100MB block, early version support up to 4MB block  
 
 ### Setup a specific instance
 client = Azure::Storage::Client.create(:storage_account_name => storage_account_name, :storage_access_key => storage_access_key)
 blob_service = Azure::Storage::Blob::BlobService.new(client: client)
 
-###  The following code shows how to create a single block blob file .
+###  The following code shows how to create a single block blob file
 # client.blob_client.create_block_blob(container_name, blob_name, ::File.open(file_to_upload, 'rb'){|file| file.read})
 
 ### Generate a random string
@@ -37,10 +47,10 @@ module Azure
       class HttpRequest
         def call
           conn = http_setup
-          print "HTTP Method: ",  method.to_sym, "\n"
-          print "HTTP request URI: ", uri, "\n"
-          puts headers
-          if headers['Content-Length'].to_i < 10240
+          print "HTTP Method: ",  method.to_sym, "\n"    ## Print out HTTP Request Method
+          print "HTTP request URI: ", uri, "\n"          ## Print out HTTP Request URI
+          puts headers                                   ## Print out HTTP  headers
+          if headers['Content-Length'].to_i < 10240      ## Only print out body for those content no bigger than 10KB
             puts body
           end
           res = set_up_response(method.to_sym, uri, conn, headers ,body)
@@ -54,7 +64,6 @@ module Azure
     end
   end
 end
-# Azure::Core::Http::HttpRequest.include LogHttpExt
 
 
 ### The following code block comes from Azure Sample 
